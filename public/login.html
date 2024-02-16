@@ -1,107 +1,108 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Book Website - Login and Registration</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<style>
-    body {
-        background-color: #f8f9fa;
-    }
-    .container {
-        max-width: 400px;
-        margin: 100px auto;
-        background-color: #fff;
-        padding: 20px;
-        border-radius: 5px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    }
-</style>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Website - Login and Registration</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 100px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+    </style>
 </head>
 <body>
-<div class="container">
-    <h1 class="text-center">Book Website</h1>
-    <h2>Login</h2>
-    <form id="loginForm">
-        <div class="mb-3">
-            <label for="loginEmail" class="form-label">Email address</label>
-            <input type="email" class="form-control" id="loginEmail" aria-describedby="emailHelp" required>
-        </div>
-        <div class="mb-3">
-            <label for="loginPassword" class="form-label">Password</label>
-            <input type="password" class="form-control" id="loginPassword" required>
-        </div>
-        <button type="submit" class="btn btn-primary">Login</button>
-    </form>
-    <hr>
-    <h2>Register</h2>
-    <form id="registerForm">
-        <div class="mb-3">
-            <label for="registerUsername" class="form-label">Username</label>
-            <input type="text" class="form-control" id="registerUsername" required>
-        </div>
-        <div class="mb-3">
-            <label for="registerEmail" class="form-label">Email address</label>
-            <input type="email" class="form-control" id="registerEmail" required>
-        </div>
-        <div class="mb-3">
-            <label for="registerPassword" class="form-label">Password</label>
-            <input type="password" class="form-control" id="registerPassword" required>
-        </div>
-        <div class="mb-3">
-            <label for="registerRole" class="form-label">Role</label>
-            <select class="form-select" id="registerRole" required>
-                <option value="user">User</option>
-                <option value="admin">Admin</option>
-                <option value="moderator">Moderator</option>
-            </select>
-        </div>
-        <button type="submit" class="btn btn-primary">Register</button>
-    </form>
-</div>
+    <div class="container">
+        <h1 class="text-center">Book Website</h1>
+        <h2>Login</h2>
+        <form id="loginForm">
+            <div class="mb-3">
+                <label for="loginEmail" class="form-label">Email address</label>
+                <input type="email" class="form-control" id="loginEmail" aria-describedby="emailHelp" required>
+            </div>
+            <div class="mb-3">
+                <label for="loginPassword" class="form-label">Password</label>
+                <input type="password" class="form-control" id="loginPassword" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Login</button>
+        </form>
+        <hr>
+        <h2>Register</h2>
+        <form id="registerForm">
+            <div class="mb-3">
+                <label for="registerUsername" class="form-label">Username</label>
+                <input type="text" class="form-control" id="registerUsername" required>
+            </div>
+            <div class="mb-3">
+                <label for="registerEmail" class="form-label">Email address</label>
+                <input type="email" class="form-control" id="registerEmail" required>
+            </div>
+            <div class="mb-3">
+                <label for="registerPassword" class="form-label">Password</label>
+                <input type="password" class="form-control" id="registerPassword" required>
+            </div>
+            <div class="mb-3">
+                <label for="registerRole" class="form-label">Role</label>
+                <select class="form-select" id="registerRole" required>
+                    <option value="user">User</option>
+                    <option value="admin">Admin</option>
+                    <option value="moderator">Moderator</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Register</button>
+        </form>
+    </div>
 
-<script>
-    document.getElementById('loginForm').addEventListener('submit', async function (event) {
-        event.preventDefault();
-        const email = document.getElementById('loginEmail').value;
-        const password = document.getElementById('loginPassword').value;
-        const response = await fetch('/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ email, password })
-        });
-        if (response.ok) {
-            const result = await response.json();
-            alert(result.message);
-        } else {
-            alert('Login failed');
-        }
+    <script>
+document.getElementById('loginForm').addEventListener('submit', async function (event) {
+    event.preventDefault();
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+    const response = await fetch('/login', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email, password })
     });
+    if (response.ok) {
+        alert('Login successful');
+        window.location.href = '/index'; // Redirect to index page
+    } else {
+        alert('Login failed');
+    }
+});
 
-    document.getElementById('registerForm').addEventListener('submit', async function (event) {
-        event.preventDefault();
-        const username = document.getElementById('registerUsername').value;
-        const email = document.getElementById('registerEmail').value;
-        const password = document.getElementById('registerPassword').value;
-        const role = document.getElementById('registerRole').value;
-        const response = await fetch('/register', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ username, email, password, role })
+        document.getElementById('registerForm').addEventListener('submit', async function (event) {
+            event.preventDefault();
+            const username = document.getElementById('registerUsername').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const role = document.getElementById('registerRole').value;
+            const response = await fetch('/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username, email, password, role })
+            });
+            if (response.ok) {
+                const result = await response.json();
+                alert('Registration successful');
+            } else {
+                alert('Registration failed');
+            }
         });
-        if (response.ok) {
-            const result = await response.json();
-            alert('Registration successful');
-        } else {
-            alert('Registration failed');
-        }
-    });
-</script>
+    </script>
 </body>
 </html>

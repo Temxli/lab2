@@ -1,5 +1,7 @@
 const express = require('express');
 const app = express();
+const session = require('express-session');
+
 const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
 const pgp = require('pg-promise')();
@@ -8,52 +10,42 @@ const path = require('path');
 // Configure the database connection
 const connectionString = 'postgres://postgres:123456@localhost:5432/mydatabase';
 const db = pgp(connectionString);
+
+// Configure session middleware
+app.use(session({
+    secret: 'secret-key',
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false } // Set secure to true if using HTTPS
+}));
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(express.json());
 
 app.use(bodyParser.json());
 
-// Register a new user
-app.post('/register', async (req, res) => {
-    const { username, email, password, role } = req.body;
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    try {
-        const result = await db.one(
-            'INSERT INTO users (username, email, password, role) VALUES ($1, $2, $3, $4) RETURNING *',
-            [username, email, hashedPassword, role]
-        );
-        res.status(201).json(result);
-    } catch (error) {
-        console.error('Error during registration:', error);
-        res.status(500).send('Error during registration');
+// Middleware to check if user is authenticated
+async function isAuthenticated(req, res, next) {
+    if (req.session.user) {
+        return next();
+    } else {
+        return res.status(401).json({ error: 'Unauthorized' });
     }
+}
+
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).send('Something went wrong!');
 });
 
-// Login route
-app.post('/login', async (req, res) => {
-    const { email, password } = req.body;
+app.get('/index', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 
-    try {
-        const user = await db.oneOrNone('SELECT * FROM users WHERE email = $1', email);
-
-        if (!user) {
-            return res.status(401).send('Invalid email or password');
-        }
-
-        const passwordMatch = await bcrypt.compare(password, user.password);
-
-        if (!passwordMatch) {
-            return res.status(401).send('Invalid email or password');
-        }
-
-        res.status(200).json({ message: 'Login successful', user });
-    } catch (error) {
-        console.error('Error during login:', error);
-        res.status(500).send('Error during login');
-    }
 });
+
+
+
 
 // Get all books
 app.get('/api/books', async (req, res) => {
@@ -108,7 +100,7 @@ app.put('/api/books/:id', async (req, res) => {
 });
 
 // Delete a book
-app.delete('/api/books/:id', async (req, res) => {
+app.delete('/api/books/:id', isAuthenticated, async (req, res) => {
     const id = req.params.id;
     try {
         await db.none('DELETE FROM books WHERE id = $1', id);
@@ -172,6 +164,60 @@ app.post('/api/return', async (req, res) => {
         console.error('Error returning book:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
+});
+
+// Register a new user
+app.post('/register', async (req, res) => {
+    const { username, email, password, role } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    try {
+        const result = await db.one(
+            'INSERT INTO users (username, email, password, role) VALUES ($1, $2, $3, $4) RETURNING *',
+            [username, email, hashedPassword, role]
+        );
+        res.status(201).json(result);
+    } catch (error) {
+        console.error('Error during registration:', error);
+        res.status(500).send('Error during registration');
+    }
+});
+
+// Login route
+app.post('/login', async (req, res) => {
+    const { email, password } = req.body;
+
+    try {
+        const user = await db.oneOrNone('SELECT * FROM users WHERE email = $1', email);
+
+        if (!user) {
+            return res.status(401).send('Invalid email or password');
+        }
+
+        const passwordMatch = await bcrypt.compare(password, user.password);
+
+        if (!passwordMatch) {
+            return res.status(401).send('Invalid email or password');
+        }
+        req.session.user = user;
+
+        // Redirect to the index page
+        res.redirect('/index');
+
+    } catch (error) {
+        console.error('Error during login:', error);
+        next(error);
+    }
+});
+
+app.post('/logout', (req, res) => {
+    req.session.destroy((err) => {
+        if (err) {
+            console.error('Error destroying session:', err);
+            return res.status(500).json({ error: 'Internal server error' });
+        }
+        res.redirect('/login'); // Redirect to the login page after logout
+    });
 });
 
 
